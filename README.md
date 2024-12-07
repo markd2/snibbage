@@ -34,10 +34,17 @@ func main() {
 * need a _router_ - (a.k.a. _servemux_) Stores a mapping from URL routing patterns and the corresponding handlers.
   - usually one servemux for application containing all your routes (are belong to us)
 * Web server - Can use the go application itself, so don't have to have nginx, Apache, or AOLserver
+* can use a symbolic port, like `":http"` or `":http-alt``. Looks in e.g. /etc/services when starting the server.
 
 ### Syntax
 
-* `func home(w http.ResponseWriter, r *http.Request) {`
+ * `go run` : shortcut that compiles the code, creates a binary in /tmp, and runs it.
+   - can give it a space-separated list of .go files, path to a package, `.` for current directory, or full module path
+   - all are equivalent:
+     - `go run .`
+     - `go run main.go`
+     - `go run snibbage.borkware.com`
+ * `func home(w http.ResponseWriter, r *http.Request) {`
   - function that returns nothing.
   - takes a response writer
   - takes a pointer to a struct
