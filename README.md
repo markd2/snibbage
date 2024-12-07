@@ -28,4 +28,23 @@ func main() {
 }
 ```
 
+### Web Stuff
 
+* need a _handler_ - executing application logic and writing HTTP response headers and bodies
+* need a _router_ - (a.k.a. _servemux_) Stores a mapping from URL routing patterns and the corresponding handlers.
+  - usually one servemux for application containing all your routes (are belong to us)
+* Web server - Can use the go application itself, so don't have to have nginx, Apache, or AOLserver
+
+### Syntax
+
+* `func home(w http.ResponseWriter, r *http.Request) {`
+  - function that returns nothing.
+  - takes a response writer
+  - takes a pointer to a struct
+
+
+### dig in to
+
+- byte slice
+  - `[]bytes("blah")` syntax
+- are there anonymous functions?
