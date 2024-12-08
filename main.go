@@ -29,7 +29,13 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(201)
     w.Write([]byte("save muh new snibbage"))
+}
+
+func teapot(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusTeapot)
+    w.Write([]byte("I AM ERROR"))
 }
 
 func main() {
@@ -39,6 +45,7 @@ func main() {
 	mux.HandleFunc("GET /{$}", home) // restrict route to matches on / only
     mux.HandleFunc("GET /snippet/view/{id}", snippetView)
     mux.HandleFunc("GET /snippet/create", snippetCreate)
+    mux.HandleFunc("GET /teapot", teapot)
     mux.HandleFunc("POST /snippet/create", snippetCreatePost)
 
 	log.Print("starting server on :4000")

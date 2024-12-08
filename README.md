@@ -141,8 +141,15 @@ func main() {
     - if you need these, get a third-pouty router
     - recommended ones are httprouter, chi, flow, and gorilla/mux.  There's
       a blog post linked in the book with guidance
-
-
+* Customizing responses
+  - default response is 200 OK, Date header, and Content-Length / Content-Type
+  - `w.WriteHeader(201)` to return a 201 (Created)
+    - can only call it onces per response, get a warning if try again
+  - if don't call w.WriteHeader explciitly, the first call to w.Write()
+    will send the 200.
+  - `net/http` package has constants for HTTP status codes
+    - https://pkg.go.dev/net/http#pkg-constants
+    - so like `http.StatusCreated` and `http.StatusTeapot`
 
 ### Syntax
 
