@@ -8,7 +8,15 @@ import (
 // define a home handler function twhich writes a byte slice containing
 // "Oop Ack Blorff" as the response body
 func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Oop Ack Blorff"))
+    w.Write([]byte("Oop Ack Blorff"))
+}
+
+func snippetView(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("display my snibbage"))
+}
+
+func snippetCreate(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("CREAT"))
 }
 
 func main() {
@@ -16,6 +24,8 @@ func main() {
 	// then register the home function as the handler for "/"
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
+    mux.HandleFunc("/view", snippetView)
+    mux.HandleFunc("/create", snippetCreate)
 
 	log.Print("starting server on :4000")
 
