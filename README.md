@@ -65,6 +65,50 @@ func main() {
       via local teams adding to the global mux and now we can't figure out
       the canonical list of routes. Plus a compromised package could register
       and do something nefarious.
+* Wildcard route patternage
+  - can define routes that contain wildcard segments.  Allows more flexible
+    routing riles, and pass variables via a request URL
+  - `{}` is a _wildcard indentifier` (which explains the use of `{$}` - hat
+    before cash
+  - e.g. `mux.HandleFunc("/oop/ack/{snorgle}/item/{blorf}", handler)`
+    - pattern contains two wildcard seggies.  First will have the identifier
+      `snorgle`, and the second `blorf`
+  - matching rules still in effect, plus the request path can contain
+    _any_ non-empty value for the wildcard segments
+    - so theis matches: `/oop/ack/splunge/item/greeble%20bork`
+  - the thing between slashes that matches (e.g. snorgle and blorf) must be
+    the entirety between slashes.  `/oop/b_{lorf}/` is right out.  As is
+    `/{flongwaffle}.html`
+  - inside the handler, can get the corresponding value using its
+    identifier and the `r.PathValue()` method.
+    - `blorf := r.PathValue("blorf")`
+    - always returns a string, and can be any alue, so validate and sanity 
+      check before doing anything useful with it.
+  - precedence - e.g. `/post/flong` and `/post/{id}`.  /post/flong matches
+    both of them. 
+    - the most specific route pattern wins
+    - where _specific_ is one matches only a subset of requests the other does.
+    - so `/post/flong` only matches with exactly that, while `/post/{id}`
+      casts a wider net
+  - nice side effect of the precedence rule is that order of route declaration
+    does not matter (yay!)
+  - they can still conflict
+    - `/post/new/{id}` and `/post/{author}/latest` overlap.  Who handles
+      `/post/new/latest`?
+    - will cause a runtime panic when initializing routes
+  - in general, don't use overlapping routes.
+* subtree path patterns with wildcard
+  - prior rules still hold, so when pattern ends with `/{$}`, it is a 
+    _subtree path pattern_ and only requires that the start of a
+    request URL path to match
+  - so `/bork/{ookie}/` will match `/bork/1`, `/bork/queens/to/queens/level/three`. To suppress that, use `/bork/{ookie}/{$}`
+* Remainder wildcards
+  - wildcards normally match a single, non-empty, segment of a request path, ave a special case
+  - `...` - something like `/greeble/{greeble...}` will match like 
+  `/greeble/1`, `/greeble/a/b/c`, etc  BUT can access the entire wildcard
+  part via the `r.PathValue()` call.
+
+
 
 ### Syntax
 

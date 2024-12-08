@@ -1,8 +1,10 @@
 package main
 
 import (
+    "fmt"
 	"log"
 	"net/http"
+    "strconv"
 )
 
 // define a home handler function twhich writes a byte slice containing
@@ -12,7 +14,14 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("display my snibbage"))
+    id, err := strconv.Atoi(r.PathValue("id"))
+    if err != nil || id < 1 {
+        http.NotFound(w, r)
+        return
+    }
+
+    msg := fmt.Sprintf("Oop greeble bork %d", id)
+    w.Write([]byte(msg))
 }
 
 func snippetCreate(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +33,7 @@ func main() {
 	// then register the home function as the handler for "/"
 	mux := http.NewServeMux()
 	mux.HandleFunc("/{$}", home) // restrict route to matches on / only
-    mux.HandleFunc("/view", snippetView)
+    mux.HandleFunc("/view/{id}", snippetView)
     mux.HandleFunc("/create", snippetCreate)
 
 	log.Print("starting server on :4000")
