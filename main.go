@@ -23,6 +23,6 @@ func main() {
 	// listen on and a servermux
 	// 
 
-	err := http.ListenAndServe(":4000", mux)
+	err := http.ListenAndServe("localhost:4000", mux)
 	log.Fatal(err)
 }
