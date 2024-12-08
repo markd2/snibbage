@@ -23,7 +23,7 @@ func main() {
 	// Use the http.NewServeMux() function to init a new servermux,
 	// then register the home function as the handler for "/"
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
+	mux.HandleFunc("/{$}", home) // restrict route to matches on / only
     mux.HandleFunc("/view", snippetView)
     mux.HandleFunc("/create", snippetCreate)
 
