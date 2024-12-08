@@ -28,13 +28,18 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("CREAT"))
 }
 
+func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("save muh new snibbage"))
+}
+
 func main() {
 	// Use the http.NewServeMux() function to init a new servermux,
 	// then register the home function as the handler for "/"
 	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", home) // restrict route to matches on / only
-    mux.HandleFunc("/view/{id}", snippetView)
-    mux.HandleFunc("/create", snippetCreate)
+	mux.HandleFunc("GET /{$}", home) // restrict route to matches on / only
+    mux.HandleFunc("GET /snippet/view/{id}", snippetView)
+    mux.HandleFunc("GET /snippet/create", snippetCreate)
+    mux.HandleFunc("POST /snippet/create", snippetCreatePost)
 
 	log.Print("starting server on :4000")
 

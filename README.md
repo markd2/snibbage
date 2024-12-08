@@ -107,6 +107,40 @@ func main() {
   - `...` - something like `/greeble/{greeble...}` will match like 
   `/greeble/1`, `/greeble/a/b/c`, etc  BUT can access the entire wildcard
   part via the `r.PathValue()` call.
+* VERBS
+  - prefix the route pattern with the necessary HTTP method when declaring
+  - e.g. `"GET /snorgle/{$}"`
+    - stringy API :-(  though I guess it allows custom verbs like SPLUNGE
+  - the http methods are UPPER CASE and should be shouted 
+  - GET matches GET and HEAD
+  - totes OK to delcare nultiple routes that have different verbs
+  - the _most specific pattern wins_ rule also applies with route patterns
+    that overlap because of an HTTP method
+  - no method matches any method, while something like `"POST /toasties"` will
+    only match the method POST, so the POST would take preceden e
+  - there is no handler nomenclature guidance (at least so far)
+    - the book uses a convention of postfixing the names of POST handlers
+      - e.g. `func snibbageCreatePost(..)`
+* curling iron
+  - `curl -i localhost:4000/` - GET
+  - `curl --head localhost:4000/` - HEAD
+  - `curl -i -d "" localhost:4000/` - POST
+    - `-d` flag declares any HTTP POST data to incldue
+* Third part rooters
+  - the wildcard/method based routing is realtivey new, from Go 1.22 (February
+    2024.  WOW)
+  - some things not supported
+    - sending custom 404 not found and 405 method not allowed
+    - using regular expressions in route patterns or wildcards
+    - matching multiple HTTP methods in a sigle route declaration
+    - automatic support for OPTIONS requests
+      - _allow clients to obtain parameters and requirements for
+        specific resources and server capabilities without taking
+        action on the resource or requesting the resource_
+    - routing based on unusual things, like HTTP request headers (headers in the HTTP request)
+    - if you need these, get a third-pouty router
+    - recommended ones are httprouter, chi, flow, and gorilla/mux.  There's
+      a blog post linked in the book with guidance
 
 
 
