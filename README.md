@@ -153,12 +153,27 @@ func main() {
   - `net/http` package has constants for HTTP status codes
     - https://pkg.go.dev/net/http#pkg-constants
     - so like `http.StatusCreated` and `http.StatusTeapot`
-* Customizing headers
+* headers
   - can edit the _response header map_
   - add one via `w.Header().Add()`
     - e.g. `w.Header.Add("Server", "FORTRAN")
   - make sure add the header before calling w.WriteHeader() or
     w.Write().  By that time it's tooooo late.
+  - can also Set(), Del(), Get(), and Values() as well.
+  - Set will replace a header
+  - Add will append (like for Cache-Control)
+  - Del will remove all values for a key
+  - Get retrieves the first element
+  - Values is a slice of all values for a header
+  - When using the set/add/del/get/values, the header name will
+    be canonicalized using textproto.CanonicalMIMEHeaderKey
+    - converts the first letter and any letter after a dash
+      to upper case, all others lowercase
+    - beware if you have a case-sensitive header
+    - to avoid canonicalization, bash the header map directly
+      w.Header()["X-XSS-Protection"] = []string("1; mode=block"}
+  - for HTTP/2, Go will always bash the header names and
+    values to lowercase per the spec
 * Writing response bodies
   - we can w.Write() to blast a string. Nice and simple
   - more common to pass your http.ResponseWriter value to another
@@ -171,6 +186,14 @@ func main() {
     - can do
       - `io.WriteString(w, "blah")`
       - `fmt.Frint(w. "BlAh")`
+* content sniffing
+  - to set the Content-Type header automagically, it
+    uses http.DetectCOntentTtype().  If it can't figure
+    out, falls back to application/octet-scream
+  - cannot distinguish JSON from plain text, so by
+    default has text/plain
+  - manually set with w.Header().Set("Content-Type", "application/json"))
+
 ### Syntax
 
  * `go run` : shortcut that compiles the code, creates a binary in /tmp, and runs it.
@@ -215,6 +238,7 @@ func (b Book) String() string {
   - you kind of have to know that something conforms (like file and
     Buffer each have the Write (Writer interface) method
     - useful interfaces: https://www.alexedwards.net/blog/interfaces-explained#useful-interface-types and https://gist.github.com/asukakenji/ac8a05644a2e98f1d5ea8c299541fce9
+* Map has Add(), Set(), Del(), Get(), Values(P
 
 
 ### dig in to
@@ -223,3 +247,5 @@ func (b Book) String() string {
   - `[]bytes("blah")` syntax
 - are there anonymous functions?
 - string interpolation?
+- Header Map.
+- slices in general
