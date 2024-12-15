@@ -233,8 +233,38 @@ root-dir/
   absolute or relative to the root of the project directory.
 * Use with `err = ts.Execute(w, nil)` to actulaly run.
 * http.Error sends a lightweight error message and status code back.
-* Thbere will be shared / boilerplate / HTML markup to include on every page
+* There will be shared / boilerplate / HTML markup to include on every page
   (e.g. Headzor, navigation, meatdata inside the <head> element)
+* Template is just regular HTML with some extra `{{actions}}` in double-braces.
+* `{{define "name"}} ... {{end}}` defines a distinct nmae template called
+  `base`, which contains content want to appear on every page.
+* inside that use `{{template "title" .}}` and `{{template "main" .}}` actions
+  tp denote that want to invoke other nmed templates (named title
+  and main) at a given location in the HTML
+  - the dot hiding in there represents any dynamic data that you want to
+    pass to the invoked template. (covered later)
+* _Partials_ - break out certain bits of HTML that can be re-used in
+  different pages or layouts.
+* `{{template}}` action invokes one template from another. There's
+  also `{{block}} ... {{end}}`. Acts like {{template}} except
+  it allows some default content if the template being invoked
+  doesn't exist in the current template set.
+  - this is useful when want to provide some default content
+    (say a sidebar) which individual pages can override on a case-by-case
+    basis if they need to. e.g.
+```
+{{define "base"}}
+  <h1>An example template</h1>
+  {{block "sidebar" .}}
+    <p>Default snidebar content></p>
+  {{end}}
+{{end}}
+```
+  - don't _need_ to include default content in the {{block}}/{{end}}
+  actions. The invoked template acts like it is optional.  If
+   the template exists in the template set, then it will be
+   rendered. But if it doesn't, then nothing is displayed
+
 
 
 

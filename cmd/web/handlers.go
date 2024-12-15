@@ -11,8 +11,14 @@ import (
 func home(w http.ResponseWriter, r *http.Request) {
     w.Header().Add("Server", "FORTRAN")
 
+    files := []string {
+        "./ui/html/base.tmpl",
+            "./ui/html/partials/nav.tmpl",
+            "./ui/html/pages/home.tmpl",
+        }
+
     // read source file into a template set
-    ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
+    ts, err := template.ParseFiles(files...)
     if err != nil {
         log.Print(err.Error())
         http.Error(w, "infernal server error", http.StatusInternalServerError)
@@ -22,7 +28,7 @@ func home(w http.ResponseWriter, r *http.Request) {
     // then use execute on the template set to write to as
     // the respons body.  Last parameter is any dymanic data 
     // gets passed in
-    err = ts.Execute(w, nil)
+    err = ts.ExecuteTemplate(w, "base", nil)
     if err != nil {
         log.Print(err.Error())
         http.Error(w, "Infernal server error", http.StatusInternalServerError)
