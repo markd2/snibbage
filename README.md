@@ -264,7 +264,87 @@ root-dir/
   actions. The invoked template acts like it is optional.  If
    the template exists in the template set, then it will be
    rendered. But if it doesn't, then nothing is displayed
+  - nice features of http.FileServer
+    - sanitizes all request paths by running them through path.Clean().
+      Removes . and .. elements
+    - range requests supported (for e.g. large files)
+    - Last-Modified and If-Modified-Since transparently supported
+      - if haven't changed, get a 304 Not Modified status code
+    - Content-Type is automatically set from the file extension via
+      mime.TypeByExtension(). Can add your own custom extensions and
+      content types by mime.AddExtensionType() if necessary.
+  - performance
+    - once served once before, the FS cache will be serving from RAM
+  - single files in a handler vis http.ServeFile. e.g.
+```
+func downloadHandler(w http.ResponseWriter, r *http.Request) {
+    http.ServeFile(w, r, "./ui/static/file.zip")
+}
+```
+  - note that http.ServeFile doesn't automaticaly sanitze the file path.
+    - if constructing a path from untrused user input, sanitize with
+      filepath.Clean() before using.
+  - Disabling directory listings
+    - easiest is to add a blank index.html. User will get 200 OK. Do
+      it for all subdirectories via
+      `find ./ui/static -type d -exec touch {}/index.html \;`
+    - a better solutuion is to make a custom implementation
+      of http.FileSystem and have it reutrn os.ErrNotExist error
+      for any directories.
+      - https://www.alexedwards.net/blog/disable-http-fileserver-directory-listings
 
+* <b>Static Files</b>
+  - example put them into ui/static/css|img|js
+  - net/http ships with http.FileServer handler that can use
+    to serve files from a specific directory.  Like all
+    GET requests that begin with "/static/"
+
+* The http.Handler interface
+  - Theory from chapter 2.10
+  - "handler" : an object which satisfies the http.Handler interface
+    - which is ServeHTTP(ResponseWriter, *Request)
+  - so a handler object must have a ServeHTTP method with that exact
+    signature
+  - so something like
+
+```
+type home struct {}
+
+func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+   w.Write(...)
+}
+```
+  - and can register with the servemux using Handle.
+    `mux.Handle("/", &home())
+  - this is kind of long-winded and confusing
+  - more common to write them as a normal function.
+    - Um, Actually, these aren't really _handlers_ because it doesn't
+      have a ServeHTTP() method
+    - But can transform it into a handler with http.HandlerFunc()
+      - "adds a ServeHTTP() method to the home function"
+      - so when ServeHTTP is called, it turns around and calls
+        the code inside of the original function.
+      - "a roundabout but convenient way of coercing a normal function
+         into satisfying the http.Handler interface
+    - HandleFunc() is just some syntactic sugar that transforms a
+      function into a handler and registers it in one step.
+  - Chaining handlers
+    - might have noticed that http.ListenAndServe() takes an http.Handler,
+      but we're passing a servemux
+    - servemux adopts ServeHTTP, so it can be passed in
+    - servmux is just a special kind of handler, but instead of
+      providing a resposne itself, passes the request on to a second
+      handler. a.k.a. Chaining handlers
+      - "very common idiom in Go"
+    - our clerver is getting a new HTTP request
+      - calls servemux's ServeHTTP
+      - looks up the relevant handler based on method/path
+      - calls that handler's ServeHTTP
+    - can think of a Go web app as a _chain_ of ServeHTTP methods
+      being called one after anohter
+  - All incoming hTTP requests are served in their own goroutine.
+    - so for busy servers, it's very likely that the code in or called
+      by your handlers will e running concurrently.
 
 
 
@@ -323,3 +403,9 @@ func (b Book) String() string {
 - string interpolation?
 - Header Map.
 - slices in general
+- method signature?
+  - `func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {`
+- why
+   - `mux.Handle("/", &home())
+- how does method/function resolution work when using interfaces
+  polymorphically
