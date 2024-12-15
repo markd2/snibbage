@@ -122,9 +122,12 @@ func main() {
     - the book uses a convention of postfixing the names of POST handlers
       - e.g. `func snibbageCreatePost(..)`
 * curling iron
-  - `curl -i localhost:4000/` - GET
-  - `curl --head localhost:4000/` - HEAD
-  - `curl -i -d "" localhost:4000/` - POST
+  - `curl -i localhost:4000/`
+    - GET
+  - `curl --head localhost:4000/`
+    - HEAD
+  - `curl -i -d "" localhost:4000/`
+    - POST
     - `-d` flag declares any HTTP POST data to incldue
 * Third part rooters
   - the wildcard/method based routing is realtivey new, from Go 1.22 (February
@@ -150,7 +153,24 @@ func main() {
   - `net/http` package has constants for HTTP status codes
     - https://pkg.go.dev/net/http#pkg-constants
     - so like `http.StatusCreated` and `http.StatusTeapot`
-
+* Customizing headers
+  - can edit the _response header map_
+  - add one via `w.Header().Add()`
+    - e.g. `w.Header.Add("Server", "FORTRAN")
+  - make sure add the header before calling w.WriteHeader() or
+    w.Write().  By that time it's tooooo late.
+* Writing response bodies
+  - we can w.Write() to blast a string. Nice and simple
+  - more common to pass your http.ResponseWriter value to another
+    function that writes the response
+  - because the http.ResponseWriter value has a Write() method,
+    it satisfies the `io.Writer` interface.
+    - so can pass the ResponseWriter to anything that takes a Writer
+    - so things like io.WriteString, and fmt.Fprint* family.
+    - instead of w.Write([]byte("Blorf"))
+    - can do
+      - `io.WriteString(w, "blah")`
+      - `fmt.Frint(w. "BlAh")`
 ### Syntax
 
  * `go run` : shortcut that compiles the code, creates a binary in /tmp, and runs it.
@@ -163,6 +183,38 @@ func main() {
   - function that returns nothing.
   - takes a response writer
   - takes a pointer to a struct
+* Interfaces
+  - https://www.alexedwards.net/blog/interfaces-explained
+  - interface is like a definiton.  Describes the exact methods that
+    some other type must have
+  - e.g. the fmt.Stringer interface:
+```
+type Stringer interface {
+     String() string
+}
+```
+  - something "satisfies" this interface / "implements" this
+    interface if it has a method with that exact same String() string.
+  - e.g. Blorf implements / satisfies this interface
+```
+type Blorf struct {
+    Food string
+    Greeble string
+}
+func (b Book) String() string {
+    return fmt.Sprintf("arhghghghg %s - %s", b.Food, b.Greeble)
+}
+```
+  - so looks like no explicit conformance, just "hey you adopt the
+    proper stuff"
+  - why useful?
+    - reduce duplication and boilerplate
+    - easier to mock instead of using real objects in tests
+    - enforce decoupling
+  - there isn't an explict declaration of conformance
+  - you kind of have to know that something conforms (like file and
+    Buffer each have the Write (Writer interface) method
+    - useful interfaces: https://www.alexedwards.net/blog/interfaces-explained#useful-interface-types and https://gist.github.com/asukakenji/ac8a05644a2e98f1d5ea8c299541fce9
 
 
 ### dig in to
