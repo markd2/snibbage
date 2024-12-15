@@ -217,6 +217,26 @@ root-dir/
     ...
   ... other project directory with non-go code
   - run with `go run ./cmd/web`
+  - `internal` has a special behavior
+    - packages in here can only be imported by code inside the
+      _parent_ of the internal directory.  So for snibbage, can only
+      be imported by code inside of the snibbage project
+    - equivalently, can't be imported by code outside of our project
+      - so folks can't creep on it without us being aware
+
+### HTML Templating
+
+* `.tmpl` files don't have any intrinsic special meaning or behavior
+* Go's html/template pacakge, has a family of functions for
+  safely parsing and rendering HTML templates.
+* load the template with `ts := templaet.ParseFiles("path/to/file")` - either
+  absolute or relative to the root of the project directory.
+* Use with `err = ts.Execute(w, nil)` to actulaly run.
+* http.Error sends a lightweight error message and status code back.
+* Thbere will be shared / boilerplate / HTML markup to include on every page
+  (e.g. Headzor, navigation, meatdata inside the <head> element)
+
+
 
 ### Syntax
 

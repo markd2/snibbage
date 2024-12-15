@@ -2,13 +2,37 @@ package main
 
 import (
     "fmt"
+    "html/template"
+    "log"
     "net/http"
     "strconv"
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
     w.Header().Add("Server", "FORTRAN")
-    w.Write([]byte("Snorgle blorfle"))
+
+    // read source file into a template set
+    ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
+    if err != nil {
+        log.Print(err.Error())
+        http.Error(w, "infernal server error", http.StatusInternalServerError)
+        return
+    }
+
+    // then use execute on the template set to write to as
+    // the respons body.  Last parameter is any dymanic data 
+    // gets passed in
+    err = ts.Execute(w, nil)
+    if err != nil {
+        log.Print(err.Error())
+        http.Error(w, "Infernal server error", http.StatusInternalServerError)
+    }
+
+
+
+
+
+//    w.Write([]byte("Snorgle blorfle"))
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request) {
