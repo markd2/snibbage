@@ -194,6 +194,30 @@ func main() {
     default has text/plain
   - manually set with w.Header().Set("Content-Type", "application/json"))
 
+* **Project Structure**
+  - no defined structure from go-land.
+  - "don't over-complicate things"
+  - there is a popular method:
+     - https://go.dev/doc/modules/layout#server-project
+     - keep packages in an internal directory
+     - keep all go commands in a `cmd` directory
+```
+root-dir/
+  go.mod
+  internal/
+    snork/
+      ...
+    greeble/
+      ...
+  cmd/
+    api-clerver/
+      main.go
+    metrics-spongflongle/
+      main.go
+    ...
+  ... other project directory with non-go code
+  - run with `go run ./cmd/web`
+
 ### Syntax
 
  * `go run` : shortcut that compiles the code, creates a binary in /tmp, and runs it.
