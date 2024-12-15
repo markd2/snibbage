@@ -10,6 +10,7 @@ import (
 // define a home handler function twhich writes a byte slice containing
 // "Oop Ack Blorff" as the response body
 func home(w http.ResponseWriter, r *http.Request) {
+    w.Header().Add("Server", "FORTRAN")
     w.Write([]byte("Oop Ack Blorff"))
 }
 
@@ -29,7 +30,7 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-    w.WriteHeader(201)
+    w.WriteHeader(http.StatusCreated) // 201
     w.Write([]byte("save muh new snibbage"))
 }
 
