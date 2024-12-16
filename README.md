@@ -345,6 +345,8 @@ func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   - All incoming hTTP requests are served in their own goroutine.
     - so for busy servers, it's very likely that the code in or called
       by your handlers will e running concurrently.
+    - beware of racesl
+      - blogpost: https://www.alexedwards.net/blog/understanding-mutexes
 
 
 
@@ -409,3 +411,5 @@ func (b Book) String() string {
    - `mux.Handle("/", &home())
 - how does method/function resolution work when using interfaces
   polymorphically
+- dig deeper into templating: https://templ.guide/
+
