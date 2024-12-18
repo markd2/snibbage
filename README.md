@@ -342,10 +342,10 @@ func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       - calls that handler's ServeHTTP
     - can think of a Go web app as a _chain_ of ServeHTTP methods
       being called one after anohter
-  - All incoming hTTP requests are served in their own goroutine.
+  - All incoming HTTP requests are served in their own goroutine.
     - so for busy servers, it's very likely that the code in or called
       by your handlers will e running concurrently.
-    - beware of racesl
+    - beware of races
       - blogpost: https://www.alexedwards.net/blog/understanding-mutexes
 
 
@@ -394,7 +394,124 @@ func (b Book) String() string {
   - you kind of have to know that something conforms (like file and
     Buffer each have the Write (Writer interface) method
     - useful interfaces: https://www.alexedwards.net/blog/interfaces-explained#useful-interface-types and https://gist.github.com/asukakenji/ac8a05644a2e98f1d5ea8c299541fce9
-* Map has Add(), Set(), Del(), Get(), Values(P
+* Map has Add(), Set(), Del(), Get(), Values()
+
+### configuration and error handladge
+
+* Managing configuration settings
+  - currently we have network address and static files hard-coded
+  - kinda annoying if need different settings for dev/test/prod)
+  - command line flags are common
+    - easiset is do something like
+    - `addr := flag.String("addr", ":4000", "HTTP network address")`
+    - call flag.Parse() to do the thing
+    - and then use later via `*addr`
+      - dereference the `addr` pointer and get to the underlying string
+  - suggests using development-convenient default values
+  - Can specify the expected type of a flag (flag.Int(), Bool(), Float64(), Sring(), Duration())
+  - `go run ./cmd/web -help` to print help
+* can also do environment varialbes
+  - link to 12-factor app. https://12factor.net/config
+  - `addr := os.Getenv("SNIBBAGE_ADDR")
+    - can't specify a default (get an empty string if the env var doesn't exist)
+    - don't get -help
+    - return value is always a string
+  - so, pass the env var as a command-line flag!
+    - `go run ./cmd/web -addr=$SNIBBAGE_ADDR
+* Boolean flags
+  - omitting the value (but providing the flag) is the same as writing -flag=true
+  - so `go run ./blah -flag=true` is the same as `go run ./blah -flag`
+  - have to use -flag=false to set it to false
+* pre-existing variables
+  - can parse int addresses of pre-existing variables
+    - e.g. flag.StringVar(), IntVar(), BoolVar(), etc
+```
+type confing struct {
+     addr string
+     staticDir string
+}
+
+var cfg config
+flag.StringVar(&cfg.addr", "addr", ":4000", " seem to be a spoon
+flag.Parse()
+```
+
+* Structured Logging
+  - log.Printf and log.Fatal are easy to use, using the Go's standard logger
+    from the `log` package.
+    - outpus with the local date and time and writes to stderr
+  - many applications that's Good Enough
+  - if you do :alot: of logging, might want them easier to filter and work with
+    - like severities
+    - or a consisten structure so it's easy for tools to parse
+  - `log/slog` can create _structured loggers_ that output log entries in
+    a set format.  including:
+    - timestamp (ms precision)
+    - severity (Debug / Info(e) / Warn / Error)
+    - log message (string value)
+    - any nubmer of attributes (key/value pairs) with additional info
+  - structured loggers have a _structured logging handler_ assoicated with
+    them. (distinct from HTTP handlers)
+    - this handler controls how log entries are formatted and where they
+      ge written to.
+  - create with
+```
+loggerHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{...})
+logger := slog.New(loggerHandler)
+// or combine
+logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{...}))
+```
+  - use NewTextHandler to make a structured logging handler, takes two args
+    - the write destination.
+    - pointer to a slog.HandlerOptions struct (https://pkg.go.dev/log/slog#HandlerOptions)
+    - if happy with the defaults, can pass ni
+  - once you have a structured logger, can write an entry with a specific
+    severeity.  `logger.Info("blah")` or `logger.Error("out of fuds")`
+    - these are variadic methods that can accept an arbitrary number of
+      key-value pairs, like
+    - `logger.Info("request receivededed", "method", "TUNA", "path", "/splunge")`
+      - yields `time=2024-03-18T11:29:23.000+00:00 level=INFO msg="request received" method=GET path=/`
+    - keys must be strings, but values of any type.
+    - if keys or values contain `"` or `=` or whitespace, will be
+      wrapped in double-quoes.
+    - ther is no equivalent of log.Fatal()
+  - type safety of key value pairs
+    - can do the variadic thing
+    - or do Any: `logger.Info("blargle", slog.Any("addr", ":4000"))`
+    - or a type-pecuilar function, like slog.String(), Int, Bool, Time,
+      and Duration
+      - `logger.Info("grumble cake", slog.String("addr", ":4000"))`
+  - slog.NewTextHandler makes a handler that writes plaintex log entries.
+  - can also write as JSON objects, using `slog.NewJSONHandler()`
+  - can filter the noise by setting the log level.      
+    - by default uses Info
+    - use slog.HandlerOptions to override this
+```
+logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+    Level: slog.LevelDebug,
+}))
+```
+  - can also include file name and line number, via `AddSource: true` in the
+    HandlerOptions
+* Decoupled logging
+  - like writing to os.Stdout.  app and the logging are decoupled.  The
+    app isn't concerned with the routing or storage of logs
+  - like in staging or prod environments, can redirect the stream to a final
+    dstination, say to disk or to Splunk
+  - e.g. `go run ./cmd/web >> /tmp/web.logge`
+
+* Concurrent logging
+  - custom loggers via slog.New) are concurrency-safe. Share and enjoy
+  - multiple sructured loggers writing to the same destination have to be
+    careful with and ensure the underlying Write() is also safe for
+    concurrent use
+
+* Dependency Injection
+  - handlers.go uses the old standard logger, not our cool new hotness.
+    -  blog post. https://www.alexedwards.net/blog/organising-database-access
+  - for applications where all your handlers are in the same package, can
+    inject dependencies to put them into a custom `application` struct, then
+    define handler functions as methods against `application`
 
 
 ### dig in to
@@ -408,8 +525,31 @@ func (b Book) String() string {
 - method signature?
   - `func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {`
 - why
-   - `mux.Handle("/", &home())
+   - `mux.Handle("/", &home())`
 - how does method/function resolution work when using interfaces
   polymorphically
 - dig deeper into templating: https://templ.guide/
+- piece-wise initialization of structs? e.g.
+```
+slog.HandlerOptions{
+    Level: slog.LevelDebug,
+}
+```
+
+
+don't check in:
+
+* paper recycling
+* Galaxie Electronics (call)
+
+* Galaxis electronics (Squirrel hill) 10-3
+
+* 1/2 price books (Monroeville?) (mcKniggit)
+* apple store (Shadyside?  (mcKniggit / Ross Park)
+
+* Airport (10:30 arrival - SWA 2981 -> SWA 2597
+
+* drug disposal (New Ken CVS supposedly)
+  - kitty-corner from the McDs on the way to oakmont
+
 
