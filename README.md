@@ -512,6 +512,47 @@ logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
   - for applications where all your handlers are in the same package, can
     inject dependencies to put them into a custom `application` struct, then
     define handler functions as methods against `application`
+  - Closures can be used.
+    - that application thing won't work if handlers are spread across packages
+    - so make a stand-o-lone config package that exports an Application struct,
+      and have your handler functions close over this to form a closures.
+      This gist https://gist.github.com/alexedwards/5cd712192b4831058b21 has
+      a more fleshy example. Plus this from the book:
+```
+// package config
+type Applications struct {
+    Logger *slog.Logger
+}
+
+// package greeblebork
+
+func ExampleHandler(app *config.Application) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        ...
+        ts, err := template.ParseFiles(files...)
+        if err != nil {
+            // app captured by the argument passed in
+            app.Logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
+            http.Error(w, "interfnace error", http.StatusInternalServerError)
+            return
+        }
+        ...
+    }
+}
+
+// package main
+func main() {
+    app := &config.Application {
+        Logger: slog.New(slog.NewTextHandler(os.Stdout, nil)),
+    }
+    ...
+    mux.Handle("/", greeblebork.ExampleHandler(app))
+}
+```
+
+* Centralized Error Handling
+  - move error handling code into helper methods
+  - help separate our concerens (blog https://deviq.com/principles/separation-of-concerns) 
 
 
 ### dig in to
@@ -535,6 +576,7 @@ slog.HandlerOptions{
     Level: slog.LevelDebug,
 }
 ```
+
 
 
 don't check in:
