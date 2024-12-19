@@ -606,21 +606,3 @@ slog.HandlerOptions{
 
 
 
-
-~don't check in:~ oops I checked it in.  Just a to-do list tomrorow
-
-* paper recycling
-* Galaxie Electronics (call)
-
-* Galaxis electronics (Squirrel hill) 10-3
-
-* old prescription disposal (New Ken CVS supposedly)
-  - kitty-corner from the McDs on the way to oakmont
-
-* 1/2 price books (Monroeville?) (mcKniggit)
-* apple store (Shadyside?  (mcKniggit / Ross Park)
-
-* Airport (10:30 arrival - SWA 2981 -> SWA 2597
-
-
-
