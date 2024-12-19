@@ -7,6 +7,7 @@ import (
     "strconv"
 )
 
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
     w.Header().Add("Server", "FORTRAN")
 
@@ -19,8 +20,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
     // read source file into a template set
     ts, err := template.ParseFiles(files...)
     if err != nil {
-        app.logger.Error(err.Error(), "method", r.Method, "url", r.URL.RequestURI())
-        http.Error(w, "infernal server error", http.StatusInternalServerError)
+		app.serverError(w, r, err)
         return
     }
 
@@ -29,10 +29,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
     // gets passed in
     err = ts.ExecuteTemplate(w, "base", nil)
     if err != nil {
-        app.logger.Error(err.Error(), "method", r.Method, "url", r.URL.RequestURI())
-        http.Error(w, "Infernal server error", http.StatusInternalServerError)
+		app.serverError(w, r, err)
     }
-}
+ }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
     id, err := strconv.Atoi(r.PathValue("id"))

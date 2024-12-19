@@ -153,6 +153,7 @@ func main() {
   - `net/http` package has constants for HTTP status codes
     - https://pkg.go.dev/net/http#pkg-constants
     - so like `http.StatusCreated` and `http.StatusTeapot`
+  - also http.StatusText() for a human-readable version
 * headers
   - can edit the _response header map_
   - add one via `w.Header().Add()`
