@@ -217,6 +217,7 @@ root-dir/
       main.go
     ...
   ... other project directory with non-go code
+```
   - run with `go run ./cmd/web`
   - `internal` has a special behavior
     - packages in here can only be imported by code inside the
@@ -562,6 +563,15 @@ func main() {
     - parsing the runtime configuration settings for the application
     - establishing the dependencies for the handlers
     - runnign the http server
+
+### Databasey things
+
+* brew install mysql
+* brew services start mysql
+* brew services stop mysql
+* mysql -u root -
+* user 'web'@'localhost', password 'snork'
+* `mysql -D snippetbox -u web -p`
 
 
 ### dig in to
