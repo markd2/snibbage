@@ -595,6 +595,43 @@ func main() {
     - https://go.dev/wiki/Modules#should-i-commit-my-gosum-file-as-well-as-my-gomod-file
   - `go mod verify` will verify the checksums
   - `go mod download` will download all the dependencies of the project
+  - when running / testing / building, the exact package versions are used
+  - handy for creating reproducible builds
+  - once package is in go.mod, package and version are fixed.
+  - `go get -u github.com/....` to update to latest minor / patch release
+  - `go get -u github.com/...@v2.0.0` - upgrade to a specific version
+  - `go get github.com/...@none` - to forget the package
+    - or if removed all references in code, can `go mod tidy`
+
+* Database programming
+  - connection pool
+  - use sql.Open.  First arg is driver name, second is data soucre name, 
+    a.k.a. Connection String or DSN
+    - which is database-peculiar. docs https://github.com/go-sql-driver/mysql#dsn-data-source-name
+    - parseTime=true is a driver-specific parameter. This one converts
+      sql time and date fields to go time.Time objects
+    - returns a sql.DB object, *not* a connection. It's a pool
+      - go manages the opening and closing of connections automagically
+      - safe for concurrent access, so can use from web handlers safely
+      - pool is intended to be long-lived.  like make in `main()` and then
+        pass it to the handlers.
+      - calling sql.Open() in an http handler is grounds for immediate 
+        dismissal and community taunting
+      - sql.Open() doesn't actually create any connections, just initialzes
+        the pool for future use.  Actual connections are lazy\
+      - db.Ping() verifies things are set up correctly to create a connection
+        and check for errors. 
+```
+db,err := sql.Open("mysql", "web:pass@/snippetbox?parseTime=true")
+if err != nil {
+    // cry
+}
+```
+  - not really database, but covered here.  The import for mysql is like `_ "github.com/go-sql-driver/mysql"`
+    - main.go doesn't actually use anything in there, so go will complain.
+    - we need the driver's `init()` to run so it can register itself
+    - so work around to alias the package name to the blank identifier
+      - standard practice for most sql drivers
 
 
 
