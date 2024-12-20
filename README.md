@@ -572,6 +572,31 @@ func main() {
 * mysql -u root -
 * user 'web'@'localhost', password 'snork'
 * `mysql -D snippetbox -u web -p`
+* get the driver via `go get`
+  - comprehensive list: https://go.dev/wiki/SQLDrivers
+  - but using the go-sql-driver/mysql
+  - go get will recursively download any dependencies that the package has
+  - uses semantic versioning (so attach @v1 to get latest v1, like v1.666.52)
+  - omit the suffix to get the latest/greatest
+
+```
+% cd $PROJECT_DIR
+% go get github.com/go-sql-driver/mysql@v1
+```
+
+* go.mod grows a `require` section with the actual version numbers of the
+  packages it is using.  Makes it easy to have multiple projects on the
+  same machien use different versions of the same project.
+  - though that makes my head hurt thinking about it...
+  - `// indirect` indicates a package doesn't directly appera in any import
+    statement
+  - the go.sum file has the checksums of the packages
+    - commit it
+    - https://go.dev/wiki/Modules#should-i-commit-my-gosum-file-as-well-as-my-gomod-file
+  - `go mod verify` will verify the checksums
+  - `go mod download` will download all the dependencies of the project
+
+
 
 
 ### dig in to
