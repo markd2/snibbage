@@ -2,17 +2,16 @@ package main
 
 import (
 	"errors"
-    "fmt"
-//    "html/template"
-    "net/http"
-    "strconv"
+	"fmt"
+	"html/template"
+	"net/http"
+	"strconv"
 
 	"snibbage.borkware.com/internal/models"
 )
 
-
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-    w.Header().Add("Server", "FORTRAN")
+	w.Header().Add("Server", "FORTRAN")
 
 	snippets, err := app.snippets.Latest()
 	if err != nil {
@@ -24,34 +23,34 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%+v\n", snippet)
 	}
 
-    // files := []string {
-    //     "./ui/html/base.tmpl",
-    //         "./ui/html/partials/nav.tmpl",
-    //         "./ui/html/pages/home.tmpl",
-    //     }
+	// files := []string {
+	//     "./ui/html/base.tmpl",
+	//         "./ui/html/partials/nav.tmpl",
+	//         "./ui/html/pages/home.tmpl",
+	//     }
 
-    // // read source file into a template set
-    // ts, err := template.ParseFiles(files...)
-    // if err != nil {
+	// // read source file into a template set
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
 	// 	app.serverError(w, r, err)
-    //     return
-    // }
+	//     return
+	// }
 
-    // // then use execute on the template set to write to as
-    // // the respons body.  Last parameter is any dymanic data 
-    // // gets passed in
-    // err = ts.ExecuteTemplate(w, "base", nil)
-    // if err != nil {
+	// // then use execute on the template set to write to as
+	// // the respons body.  Last parameter is any dymanic data
+	// // gets passed in
+	// err = ts.ExecuteTemplate(w, "base", nil)
+	// if err != nil {
 	// 	app.serverError(w, r, err)
-    // }
- }
+	// }
+}
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
-    id, err := strconv.Atoi(r.PathValue("id"))
-    if err != nil || id < 1 {
-        http.NotFound(w, r)
-        return
-    }
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
 
 	snippet, err := app.snippets.Get(id)
 	if err != nil {
@@ -63,11 +62,31 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%+v", snippet)
+	files := []string{
+		"./ui/html/base.tmpl",
+		"./ui/html/partials/nav.tmpl",
+		"./ui/html/pages/view.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	data := templateData{
+		Snippet: snippet,
+	}
+
+	// execute the page, and pass the snippet
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("Display a form for creating a new snippet..."))
+	w.Write([]byte("Display a form for creating a new snippet..."))
 }
 
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {

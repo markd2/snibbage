@@ -719,6 +719,20 @@ where xpires > UTC_TIMESTAMP() order by id desc limit 10
       created on multiple connections
     - so, wait for manually preparing statements to prove it's a problem
 
+### Dynamic HTML templates
+
+displaying the dynamic data from teh database
+
+- any data passed as teh final parameter to ts.ExecuteTemplate() is represented within the templates by `.`
+- with the snippetView, the underlying type of dot is models.Snippet
+  - can render (a.k.a. _yield_) by postfixing the dot with the field name.
+  - so a Title field would be `{{.Title}}` in the template
+- with go's html/template package, can pass in one (and only one) item of
+  dynamic data.  Can wrap the multiple dynamic datas into a struct holder
+
+
+
+
 
 ### dig in to
 
@@ -753,6 +767,7 @@ slog.HandlerOptions{
 		trace = string(debug.Stack())
         )
 ```
+- what does the ... at the ned of a call mean?.  e.g. `ts, err := template.ParseFiles(files...)`
 
 ### Emacs fun
 
