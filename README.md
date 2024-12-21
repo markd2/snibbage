@@ -667,6 +667,7 @@ stmt := `insert into snippets (title, content, created, expires)
   - use a select statement to return a single record (like using an id
     for a primary key and doing an equality check)
   - after QueryRow, do a row.Scan to poke values into the structure
+    - errors are deferred ntil Scan, so can chain the QueryRow and the Scan
   - the driver automatically converts the raw sql db output to the required
     go types. Things should Just Work. Like char/varchar/text -> string, boolean -> bool, etc
     - due to a quirk of mysql, need to do that `parseTime=true` on the DSN
@@ -681,6 +682,43 @@ stmt := `insert into snippets (title, content, created, expires)
       - and Is will unwrap errors as necessary checking for a match
       - there's also an .As(), to check if a (maybe wrapped) error has a
         specifc type
+
+* Multiple record queries
+  - return multiple rows. queries like
+```
+select id, title, content, created, expres from snippets
+where xpires > UTC_TIMESTAMP() order by id desc limit 10
+```
+  - iterate over rows.Next
+  - calling `defer rows.Close()` is critical - make sure the resultset is
+    closed so the underlying database connection is recycled
+
+* Miscellaney
+  - Go doesn't do well is handling NULL values
+    - e.g. can't convert NULL into a string when doing a `Scan()` to stuff
+      a structure
+    - roughly the fix is to change the field scanning into from a `string`
+      to a `sqlNullStrong`.  See this gist: https://gist.github.com/alexedwards/dc3145c8e2e6d2fd6cd9
+    - but in general, avoid null values altogether
+  - transactions
+    - any calls to Exec/Query/QueryRow will opportunisticaly use any
+      connection from the database pool
+    - but say you need to balance a lock tables with an unlock tables, which
+      need be done same on the same connection
+    - wrap in a transaction
+      `tx, err := m.DB.Begin()`, `defer tx.Rollback()`, do the work, `tx.Commit()`
+    - _must_ call Rollback() or Commit() before leaving function
+  - prepared statements
+    - Exec/Query/QueryRow all use prepared statements behind the scenes.
+    - could use DB.Prepare()
+    - (code snibbage in the book)
+    - prepared statements exist on db connections, and because we have a pool,
+      sql.Stmnt tries to get to the same pool. If it's in use, you gotta
+      wait
+    - also possible that a large number of prepared statements will be
+      created on multiple connections
+    - so, wait for manually preparing statements to prove it's a problem
+
 
 ### dig in to
 

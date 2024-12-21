@@ -62,5 +62,36 @@ func (m *SnippetModel) Get(id int) (Snippet, error) {
 }
 
 func (m *SnippetModel) Latest() ([]Snippet, error) {
-	return nil, nil
+	stmt := `select id, title, content, created, expires from snippets
+     where expires > UTC_TIMESTAMP() order by id desc limit 10`
+
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	// do the defer after checking the Query error, otherwise get a panic
+	defer rows.Close()
+
+	// initialize an empty slice
+	var snippets []Snippet
+
+	for rows.Next() {
+		var s Snippet
+
+		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+		if err != nil {
+			return nil, err
+		}
+
+		snippets = append(snippets, s)
+	}
+
+	// check rows.Err() to get any errors during iteration. might not have
+	// the whole resultset
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	
+	return snippets, nil
 }

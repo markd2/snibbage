@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
     "fmt"
-    "html/template"
+//    "html/template"
     "net/http"
     "strconv"
 
@@ -14,26 +14,36 @@ import (
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
     w.Header().Add("Server", "FORTRAN")
 
-    files := []string {
-        "./ui/html/base.tmpl",
-            "./ui/html/partials/nav.tmpl",
-            "./ui/html/pages/home.tmpl",
-        }
-
-    // read source file into a template set
-    ts, err := template.ParseFiles(files...)
-    if err != nil {
+	snippets, err := app.snippets.Latest()
+	if err != nil {
 		app.serverError(w, r, err)
-        return
-    }
+		return
+	}
 
-    // then use execute on the template set to write to as
-    // the respons body.  Last parameter is any dymanic data 
-    // gets passed in
-    err = ts.ExecuteTemplate(w, "base", nil)
-    if err != nil {
-		app.serverError(w, r, err)
-    }
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v\n", snippet)
+	}
+
+    // files := []string {
+    //     "./ui/html/base.tmpl",
+    //         "./ui/html/partials/nav.tmpl",
+    //         "./ui/html/pages/home.tmpl",
+    //     }
+
+    // // read source file into a template set
+    // ts, err := template.ParseFiles(files...)
+    // if err != nil {
+	// 	app.serverError(w, r, err)
+    //     return
+    // }
+
+    // // then use execute on the template set to write to as
+    // // the respons body.  Last parameter is any dymanic data 
+    // // gets passed in
+    // err = ts.ExecuteTemplate(w, "base", nil)
+    // if err != nil {
+	// 	app.serverError(w, r, err)
+    // }
  }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
