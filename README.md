@@ -729,6 +729,55 @@ displaying the dynamic data from teh database
   - so a Title field would be `{{.Title}}` in the template
 - with go's html/template package, can pass in one (and only one) item of
   dynamic data.  Can wrap the multiple dynamic datas into a struct holder
+- html/template automatically escapes any ata yielded between {{ }} tags.
+  Helpful for XSS attacks, and the reason you should use thsi package instead
+  of the more generic text/template from Go
+  - uses proper esacping if it's HTML, CSS, Javascript, or a URI
+- when chaning/nesting templates, dot needs to be explicitly passed / pipeliend
+  to the template being invoked
+  - e.g. `{{template "main" .}}`
+  - get into the habit of always pipelining dot with {{template}} or {{block}}
+- can call methods if the type yielding in {{ }}. So long as they're exported
+  and return only a signle value (or single value and error)
+  - of course, it's a different syntax.
+  - say when calling Weekday on a Time `{{.snippet.Created.Weekday}}`
+  - or passing parameters  `{{.Snippet.Created.AddData 0 6 0}}`
+    - no parens, no commas, just space.
+- html/templates always strips out any HTML comments. Including conditional comments: https://en.wikipedia.org/wiki/Conditional_comment
+  - help avoid XSS attacks. Allowing conditional comments would mean Go
+    isn't always able to anticipate how a browser will interpret the markup,
+    and so can't escape everything appropriately
+- template actions and functions
+  - already looked at some actions, {{define}}, {{template}}, and {{block}}
+  - three more to control the display of dynamic data
+    - {{if}}
+      - `{{if .Blah}} C1 {{else}} C2 {{end}}`
+      - if .Blah is not empty, render C1, else render content of C2
+    - {{with}}
+      - `{{with .Blah}} C1 {{else}} C2 {{end}}`
+      - if .Blah is not empty, then set dot to the value of .Blah and render
+        C1, otherwise render content C2
+    - {{range}}
+      - `{{range .Blah}} C1 {{else}} C2 {{end}}`
+      - if the length of .Blah is > 0 then loop over each element, setting
+        do to the value of each element and rendering C1.
+        - if length is zero, then render C2
+      - underlying type of .Blah must be array, slice, map, or channel
+    - for all three, {{else}} is optional
+    - empty values are falsy : false, 0, nil pointer, and array/slice/map/string of length zero
+    - with and range change the value of dot
+      - what dot represents can be different depending on where you are in
+        the template and what you're doing
+  - complete list : https://pkg.go.dev/text/template#hdr-Functions
+  - reduced list
+    - eq / ne / not / or
+    - index (value of .Blah at index i)
+    - {{printf "%s-%s" .Oop .Ack}}
+    - {{len .Blah}} - length
+    - {{$ack := len .Oop}} assign length of .Oop to template variable $ack
+  - template variables
+    - can store the result from a function and use it in multiple places
+    - prefixed by $ and can be alphanumeric onlyx
 
 
 
