@@ -763,6 +763,8 @@ displaying the dynamic data from teh database
         do to the value of each element and rendering C1.
         - if length is zero, then render C2
       - underlying type of .Blah must be array, slice, map, or channel
+      - can use a {{continue}} or {{break}} to bail out early
+      - `{{if eq .ID 99}} {{continue}} {{end}}`
     - for all three, {{else}} is optional
     - empty values are falsy : false, 0, nil pointer, and array/slice/map/string of length zero
     - with and range change the value of dot
@@ -778,6 +780,16 @@ displaying the dynamic data from teh database
   - template variables
     - can store the result from a function and use it in multiple places
     - prefixed by $ and can be alphanumeric onlyx
+  - can chain functions inside of a {{ }} grouing
+    - e.g. `{{if (gt (len .Blah) 99}} C1 {{end}}`
+    - looks pretty LISPish
+      - `{{if (and (eq .Blah 1) (le .Ack 20))}} C1 {{end}}`
+- caching templates
+  - each time we render a page, the app reads and parses the template file
+    with template.ParseFiles
+  - could avoid by parsing once and storing in an in-memeory cache
+    - say with an in-memory map with the type `map[string]*template.Template`
+  - duplicated code can be reduced by creating helper functions
 
 
 
@@ -817,6 +829,7 @@ slog.HandlerOptions{
         )
 ```
 - what does the ... at the ned of a call mean?.  e.g. `ts, err := template.ParseFiles(files...)`
+- is there a typedef equivalent (looking at you `map[string]*template.Template`)
 
 ### Emacs fun
 
