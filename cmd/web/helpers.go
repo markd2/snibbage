@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -29,10 +30,16 @@ func (app *application) render(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	w.WriteHeader(status)
+	// render to a buffer first to see if it asplodes
+	buf := new(bytes.Buffer)
 
-	err := ts.ExecuteTemplate(w, "base", data)
+	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
+		return
 	}
+
+	// if we get here, the template got rendered to the buffer
+	w.WriteHeader(status)
+	buf.WriteTo(w)
 }

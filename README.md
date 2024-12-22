@@ -790,6 +790,12 @@ displaying the dynamic data from teh database
   - could avoid by parsing once and storing in an in-memeory cache
     - say with an in-memory map with the type `map[string]*template.Template`
   - duplicated code can be reduced by creating helper functions
+- there's a risk of runtime errors. (say `{{len nil}}`
+  - the html has "server error" in it, but the user gets back a 200OK
+  - to fix, make the template render a two-stage process
+    - do a trial render by writing the template into a buffer.
+    - if it fails, respond to the user with an error
+    - if it works, write out the buffer with http.ResponseWriter
 
 
 
