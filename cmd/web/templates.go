@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"snibbage.borkware.com/internal/models"
 )
@@ -13,6 +14,13 @@ type templateData struct {
 	Snippets []models.Snippet
 }
 
+func humanDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
+}
+
+var functions = template.FuncMap {
+	"hoomanDate": humanDate,
+}
 
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
@@ -26,7 +34,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 
 		// parse the base template file into a template set
-		ts, err := template.ParseFiles("./ui/html/base.tmpl")
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
 		if err != nil {
 			return nil, err
 		}

@@ -796,8 +796,26 @@ displaying the dynamic data from teh database
     - do a trial render by writing the template into a buffer.
     - if it fails, respond to the user with an error
     - if it works, write out the buffer with http.ResponseWriter
-
-
+- common dynamic data
+  - add something to the templateData struct and then pass it around
+  - add a helperer to create the template data with the common data
+- custom template functions
+  - function that can be called inside of go templates
+     - can take any number of arguments
+     - cn only return one value (two if error, three with eggroll)
+  - make a template.FuncMap object with the custom humanDate()
+  - use template.Funcs() to register this before parsing the template
+```
+// go from
+ts, err := template.ParseFiles("./ui/html/base.tmpl")
+// to
+ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
+```
+- pipelining
+  - instead of `{{hoomanDate .Created}}`, can do `{{.Created | hoomanDate}}`
+  - can make an arbitrary long chain of template functions with output of one
+    forming the input for the next
+  - so can do stuff like `{{.Created | hoomanDate | printf "Created: %s"}}`
 
 
 
