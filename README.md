@@ -908,7 +908,30 @@ func flongwaffle(next http.Handler) http.Handler {
       - `(!) Content Security Policy: this page's settings blocked the loading of a resource at https://zombo.com/this-is-zombocom ("style-src")`
 
 - Request logging
-  - 
+  - ok to have handlers as meethods against application
+- Panic recovery
+  - go buy a [playdate](https://play.date)
+  - panic: https://pkg.go.dev/builtin#panic
+  - panics result in the application being terminated
+  - Go's http server assumes the effect of any panic is isolated
+    to the goroutine serving the active HTTP request
+    - following a panic our server will log a stack trace to the
+      server error unwind the stack, calling any deferred
+      functions along the way, and close the HTTP connection
+    - so _won't_ bring down the server.
+  - but what will the user see?
+    - empty result. not good
+    - would be nice to 500 infernal server error
+  - make some middleware that recovers the panic and calls our
+    server error helper
+  - setting the `Connection: close` header on the response triggers go's
+    http server to close the current connection after a response has been sent
+    - for HTTP/2, go will strip that header (`%-)`) and send a GOAWAY frame
+  - recover()'s return value is any type, could be string, error, or
+    something else.
+    - fmt.Errorf() normalizes into an error object
+  - you'll want your panic handler first in the chain
+
 
 
 ### dig in to
@@ -946,6 +969,16 @@ slog.HandlerOptions{
 ```
 - what does the ... at the ned of a call mean?.  e.g. `ts, err := template.ParseFiles(files...)`
 - is there a typedef equivalent (looking at you `map[string]*template.Template`)
+- this syntax:
+```
+defer func() {
+   if err := recover(); err != nil {
+       w.Header().Set("Connection", "close")
+       app.serverError(w, r, fmt.Errorf("%s", err))
+   }
+}()
+```
+
 
 ### Emacs fun
 
