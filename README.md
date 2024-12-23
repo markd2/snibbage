@@ -817,6 +817,98 @@ ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
     forming the input for the next
   - so can do stuff like `{{.Created | hoomanDate | printf "Created: %s"}}`
 
+### Middleware
+
+self-contained code which independently acts on a request before or after 
+normal application handlers.
+
+* How it works
+  - "think of a go web application as a chain of ServeHTTP() methods being called oned after another"
+  - right now though, get a new HTTP request, calls the servemux's ServeHTTP()
+    method funds the right handler, and then calls that handlers ServeHTTP
+  - middleware inserts another handler into that chain of acheron
+    - so it does some logic, like logging a request, then calls the ServeHTTP
+      method of the next handler in the chain
+  - we already have some - the http.StripPrefix() from serving static files 
+    removes a specific prefix from the URI
+
+Pattern. Close over the `next` handler. Essentially building a linked list
+of closures that do ServeHTTP stuffs.
+
+```
+func flongwaffle(next http.Handler) http.Handler {
+    fn := func(w http.resposneWriter, r *http.Request) {
+        // do flongwaffle logic here
+        next.ServeHTTP(w, r)
+    }
+    return http.HandlerFunc(fn)
+}
+```
+
+or simplify it with an anoymous function and elide the temporary. This is
+the more idiomatic form
+
+```
+func flongwaffle(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // do flongwafflage
+        next.ServeHTTP(w, r)
+    })
+}
+```
+
+- positioning the middleware
+  - if do it before the servemux, it will act on every request
+    - say logging requests
+  - if do it after the servemux, by wrapping a specific application ahndler,
+    then will be executed only for a specific route
+    - like authorization, may only want to run on specific routes
+- setting common headers, the `Server: FORTRAN` on every request, along with
+  OWSAP recommended securty headers.
+  - Content-Security-Policy (CSP) - restrict where the resources of the page
+    can be loaded from. Helps prevent a variety of cross-site scripting,
+    clickjacking, and code-injection attacks
+    - lots o docs: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+  - Referrer-Policy controls what information is included in a Referer header.
+    - setting origin-when-cross-origin, the full URL will be included for
+      same-origin requests, but other requests information like the URL path
+      and query string values are stripped out
+  - X-Content-Type-Options: nosniff - not to mime-type sniff the content type
+    of the responses.  Help prevent content-sniffing attacks
+  - X-Frame-Options: deny - used to prevent clickjacking attacks in older
+    browsers that don't support CSP headers
+    - https://developer.mozilla.org/en-US/docs/Web/Security/Types_of_attacks#click-jacking
+  - X-XSS-Protection: 0 - disable the blocking of cross-site scripting attacks
+    Before it was fine to set to 1; mode=block, but when using CSP headers,
+    the guidance is to disable the feature
+- flow of control
+  - when the last handler in the chain returns, "control is passed back up
+    the chain" (um, actually, it's unwinding stacks), so presumably you can do
+    work after a chained handler calls
+  - can also return in your handler before calling next.ServeHTTP, to stop
+    upstream handlers
+  - auth middleware useful for this. e.g.
+```
+func flongwaffle(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if !isAuthorized(r) {
+            w.WriteHeader(http.StatusForbidden)
+            return
+        }
+        next.ServeHTTP(w, r)
+    }
+}
+```
+  - Debugging CSP issues
+    - CSP headers are great,but you can get resources/scripts locked by your own
+      CSP rules
+    - keep your web browser dev tools handy and get itno the habity of checking
+      the logs early on if you get unexpected problems.
+    - blocked resources will be shown as an error in the console logs
+      - `(!) Content Security Policy: this page's settings blocked the loading of a resource at https://zombo.com/this-is-zombocom ("style-src")`
+
+- Request logging
+  - 
 
 
 ### dig in to
