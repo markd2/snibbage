@@ -1046,6 +1046,10 @@ content := r.URL.Query.Get("content")
     /snippets normally renders somethign else (like a list of all the
     snippets)
 
+- the validation shown here is ok for a single form, but kind of collapses
+  under its own weight if there's a bunch of forms.  SO, moar helperz!
+  this time in an internal package
+
 
 ### dig in to
 
@@ -1093,6 +1097,12 @@ defer func() {
        app.serverError(w, r, fmt.Errorf("%s", err))
    }
 }()
+```
+- this generic-looking thing:
+```
+func permittedValue[T comparable](value T, permittedValues ...T) bool {
+	return slices.Contains(permittedValues, value)
+}
 ```
 
 
