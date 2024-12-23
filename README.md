@@ -959,6 +959,17 @@ func (app *application) flongwaffle(w http.ResponseWriter, r *http.Request) {
     - should have the form of `func (http.Handler) http.Handler`
   - can also assign it to variables
 
+### Processing Forms
+
+High level flow is a standard Post-Redirect-Get pattern:
+- user shown a blank form when they GET /snippet/create
+- user completes the form and submitted via POST to /snippet/create
+- form data will be validated by snippetCreatePost.
+  - if any failures, re-displya with the appropirate form fields highlighted
+  - if passes, the data for the new snippet will be added to the db, and
+    then reidrected to GET /snippet/view/{id}
+- setting up a form
+
 
 
 ### dig in to
