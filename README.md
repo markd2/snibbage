@@ -1031,6 +1031,20 @@ content := r.URL.Query.Get("content")
     - actually, 100 `utf8.RuneCountInString()` - number of unicode code points.
   - expires is exactly one of our permitted values (1, 7, 365)
   - lots of snippets from AE: https://www.alexedwards.net/blog/validation-snippets-for-go
+- to round-trip the errors, add a Form to the template data
+  - with a map in a templae, can chain the key name to the value. e.g.
+    `{{.Form.FieldErrors.title}}`
+  - map key names don't need to be capitalized
+
+- Why U No REST?
+  - overlap of routes - `GET /snippets/{id}` and `GET /snippets/create` if the
+    id were a string
+  - the form presented on /snippets/create would need to post to /snippets when
+    submitted. When re-render the TMO form, the url in the browserwll also
+    change to /snippets. (YMMV on if that's a problem, most users don't
+    look at URLs, but not cool lying to folks), especially if a GET of
+    /snippets normally renders somethign else (like a list of all the
+    snippets)
 
 
 ### dig in to
