@@ -864,7 +864,7 @@ func flongwaffle(next http.Handler) http.Handler {
     then will be executed only for a specific route
     - like authorization, may only want to run on specific routes
 - setting common headers, the `Server: FORTRAN` on every request, along with
-  OWSAP recommended securty headers.
+  OWASP recommended securty headers.
   - Content-Security-Policy (CSP) - restrict where the resources of the page
     can be loaded from. Helps prevent a variety of cross-site scripting,
     clickjacking, and code-injection attacks
@@ -931,6 +931,33 @@ func flongwaffle(next http.Handler) http.Handler {
     something else.
     - fmt.Errorf() normalizes into an error object
   - you'll want your panic handler first in the chain
+  - panic recovery in background goroutines
+    - importaht that our middelware only recover panics that happen in the
+      same goroutine that has the recoverPanic() middleware
+    - if a handler spins up another goroutine to say do some background
+      processing, then any panics that happen there will not be recovered,
+      and so will bring down the server.
+    - make sure you recover any panics there too e.g
+```
+func (app *application) flongwaffle(w http.ResponseWriter, r *http.Request) {
+    go func() {
+        defer func() {
+              if err: = recover(); err != nil {
+                 app.logger.Error(fmt.Sprint(err))
+              }
+        }()
+        doSomeBackgroundProcessing()
+    }()
+    w.Write([]byte("OK"))
+}
+```
+
+- Composable middleware chains
+  - using `justinas/alice` package (https://github.com/justinas/alice)
+    - instead of `FW1(FW2(FW3(App)))`, do `alice.New(FW1, FW2, FW3).Then(App)`
+      - I don't see it as a huge win, but oh well
+    - should have the form of `func (http.Handler) http.Handler`
+  - can also assign it to variables
 
 
 
