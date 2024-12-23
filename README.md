@@ -969,7 +969,68 @@ High level flow is a standard Post-Redirect-Get pattern:
   - if passes, the data for the new snippet will be added to the db, and
     then reidrected to GET /snippet/view/{id}
 - setting up a form
+- parsing data
+  - use r.ParseForm() to parse the rquest body
+    - making sure it's well-formed
+    - stores the form data in the r.PostForm map
+    - any errors will return an error
+    - it's idempotent - call it multiplke times on the same request if you want
+  - get to the form data by using r.PostForm.Get().  e.g. r.PostForm.Get("hoover").  Missing fields return empty string
+  - there exists r.PostFormValue, but it silently ignores errors. So, ugh.
+  - r.PostForm.Get() returns the first value for a specific form field.
+    - so can't use for forms that send multiple values, like a group of
+      checkboxes
+```
+<input type="checkboxes" name="items", value="rikki"> Rikki
+<input type="checkboxes" name="items", value="tikki"> Tikki
+<input type="checkboxes" name="items", value="tavi"> Tavi
+```
+  - so have to work with r.PostForm map directly.
+    - r.PostForm map is url.Values, which in turn is `map[string][]string`, so
+      loop over things
+```
+for i, item = range r.PostForm["items"] {
+    fmt.Fprintf(w, "%d: Item %s\n", i, item)
+}
+```
+- limiting form size
+  - by default, have a 10 meg limit
+    - unless you `enctype="multipart/form-data"`
+    - change the limit with MaxBytesReader
+    - when the limit is hit, sets a flag on http.ResponseWriter that tells
+      the server to close the underlying TCP connection
+```
+r.Body = http.MaxBytesReader(w, r.Body, 4096)
+err := r.ParseForm
+...
+```
+- Query string paramters
+  - if have a form that submits data using GET, instead of POST, the
+    form data will be included as URL query string parametrs.
+  - retrieve via r.URL.Query().Get()
+    - return string, or "" if no patching parametr
+```
+e.g. /oop/ack?title=splunge&content=greeble
 
+title := r.URL.Query.Get("title")
+content := r.URL.Query.Get("content")
+```
+
+- r.Form map
+  - can also access query string paramters is the r.Form map. it's the
+    analog to r.PostForm used earlier
+  - contains both the POST request body **and** any query string parameters
+  - request body value takes precedent over hte query string parameter
+  - r.Form can be useful if you want to be agnostic about how data values
+    get passed in.
+    - otherwise, doesn't offer any benefits, and is better to be more explicit
+      to read from the post/query via the appropriate lane
+- Validating form data
+  - for snibbage, check that title and content fields are non-emptuy
+  - title <= 100 characters
+    - actually, 100 `utf8.RuneCountInString()` - number of unicode code points.
+  - expires is exactly one of our permitted values (1, 7, 365)
+  - lots of snippets from AE: https://www.alexedwards.net/blog/validation-snippets-for-go
 
 
 ### dig in to
@@ -981,6 +1042,9 @@ High level flow is a standard Post-Redirect-Get pattern:
 - strings with backticks vs double-quotes (multi-line?)
 - Header Map.
 - slices in general
+- maps in general
+  - `fieldErrors := make(map[string]string)`
+
 - method signature?
   - `func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {`
 - "%+v" Fprintf format specifier
