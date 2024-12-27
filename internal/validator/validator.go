@@ -26,7 +26,7 @@ func (v *Validator) AddFieldError(key, message string) {
 	}
 }
 
-func (v *Validator) CheckField(ok bool, key, message string {
+func (v *Validator) CheckField(ok bool, key string, message string) {
 	if !ok {
 		v.AddFieldError(key, message)
 	}
@@ -40,7 +40,7 @@ func MaxChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) <= n
 }
 
-func permittedValue[T comparable](value T, permittedValues ...T) bool {
+func PermittedValue[T comparable](value T, permittedValues ...T) bool {
 	return slices.Contains(permittedValues, value)
 }
 

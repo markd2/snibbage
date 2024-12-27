@@ -1051,6 +1051,8 @@ content := r.URL.Query.Get("content")
   this time in an internal package
 
 
+
+
 ### dig in to
 
 - byte slice
@@ -1104,6 +1106,54 @@ func permittedValue[T comparable](value T, permittedValues ...T) bool {
 	return slices.Contains(permittedValues, value)
 }
 ```
+- embedding (structs in structs, interfaces in itnerfaces, etc)
+  - https://eli.thegreenplace.net/2020/embedding-in-go-part-1-structs-in-structs/
+  - interesting bit, if embed a struct without a name, then the struct is
+    embedded and _promoted_, so you don't have to dig in to the other thing
+```
+type Oop struct {
+   ack int
+}
+
+type Greeble struct {
+   Oop
+   snornge string
+}
+
+type Hoover struct {
+   oop Oop
+   snornge string
+}
+```
+With Greeble, can do a greeble.ack.  For a Hoover, have to do hoover.oop.ack. This is actually pretty cool
+
+* Moar Info
+  - Generics - a.k.a. parametric ploymorphism. Write code that works on 
+    different concrete types
+    - syntax: `func count[T comparable](v T, s []T) int {`
+    - official Go tootoriole - https://go.dev/doc/tutorial/generics
+    - recommended videos (first 15 min) - https://www.youtube.com/watch?v=Pa_e9EeCdy8
+  - When to use generics
+    - "judiciously and cautiously"
+    - beast practices still being figured out
+    - if find repeating boilerplate for different data types
+      - e.g. common operations on slices, maps, or channel
+      - helpers for carrying out validation checks or test assertions on 
+        different daat types
+      - find reaching for `any`  / empty interface
+        - like when creating a data structure (like a queue, cache, or linked
+          list) which needs to operate on different types
+  - when not to
+    - if makes code harder to understand
+    - if all the types have a common set of methods 
+      - define and use a  `interface` type instead
+    - Because You Can (side-eyeing the rest of the world)
+
+* Automatic Form Processing
+  - there exist third-party packages like go-playground/form or
+    gorilla/schema to automatically decode the form data into the
+    form struct.
+  - totally optional 
 
 
 ### Emacs fun
